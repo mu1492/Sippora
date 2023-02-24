@@ -737,6 +737,11 @@ void Sippora::handleDeviceChanged
     }
 
     initializeAudio( mMainUi->GenerateDeviceComboBox->itemData( aIndex ).value<QAudioDeviceInfo>() );
+
+    if( mSignalReady )
+    {
+        setAudioData();
+    }
 }
 
 
