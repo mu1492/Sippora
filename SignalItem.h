@@ -339,6 +339,7 @@ class SignalItem
             SignalType type;
 
             NoiseType   noiseType;
+            double      gamma;
             double      tDelay;
 
             double      amplit;
@@ -349,6 +350,7 @@ class SignalItem
                 type = SIGNAL_TYPE_NOISE;
 
                 noiseType = NOISE_TYPE_DEK;
+                gamma = 0;
                 tDelay = 0;
 
                 amplit = 0.1;

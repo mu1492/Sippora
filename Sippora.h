@@ -60,6 +60,7 @@ class Sippora : public QMainWindow
         static constexpr double FREQ_MAX_HZ = 20000;                    //!< f_max = 20 kHz
         static constexpr double T_MIN_S = 1.0 / FREQ_MAX_HZ;            //!< T_min = 50 us
 
+        const QString GAMMA_SMALL = QString::fromUtf8( "\u03B3" );      //!< small Greek gamma
         const QString PHI_SMALL = QString::fromUtf8( "\u03C6" );        //!< small Greek phi
         const QString SUBSTR_DELIMITER = ", ";                          //!< parameter delimiter in signal
 
@@ -269,6 +270,10 @@ class Sippora : public QMainWindow
         void handleSignalChangedNoiseType
             (
             int     aIndex      //!< index
+            );
+        void handleSignalChangedNoiseGamma
+            (
+            double  aValue      //!< value
             );
         void handleSignalChangedNoiseTDelay();
         void handleSignalChangedNoiseAmplitude();

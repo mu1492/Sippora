@@ -29,6 +29,8 @@ This file contains the sources for the signal generator.
 #include <iostream>
 #include <fstream>
 
+#include "NoisePwrSpectrum.h"
+
 
 //!************************************************************************
 //! Constructor
@@ -164,6 +166,10 @@ Sippora::Sippora
     // Noise
     fillValuesNoise();
     connect( mMainUi->NoiseTypeComboBox, SIGNAL( currentIndexChanged(int) ), this, SLOT( handleSignalChangedNoiseType(int) ) );
+
+    mMainUi->NoiseGammaLabel->setText( GAMMA_SMALL + " =" );
+    connect( mMainUi->NoiseGammaSpin, SIGNAL( valueChanged(double) ), this, SLOT( handleSignalChangedNoiseGamma(double) ) );
+
     connect( mMainUi->NoiseTDelayEdit, &QLineEdit::editingFinished, this, &Sippora::handleSignalChangedNoiseTDelay );
     connect( mMainUi->NoiseAmplitEdit, &QLineEdit::editingFinished, this, &Sippora::handleSignalChangedNoiseAmplitude );
     connect( mMainUi->NoiseOffsetEdit, &QLineEdit::editingFinished, this, &Sippora::handleSignalChangedNoiseOffset );
@@ -484,6 +490,7 @@ QString Sippora::createSignalStringNoise
 {
     QString lineString = QString::number( aSignal.type );
     lineString += SUBSTR_DELIMITER + QString::number( aSignal.noiseType );
+    lineString += SUBSTR_DELIMITER + QString::number( aSignal.gamma );
     lineString += SUBSTR_DELIMITER + QString::number( aSignal.tDelay );
     lineString += SUBSTR_DELIMITER + QString::number( aSignal.amplit );
     lineString += SUBSTR_DELIMITER + QString::number( aSignal.offset );
@@ -679,6 +686,7 @@ void Sippora::fillValuesTrapDampSin()
 void Sippora::fillValuesNoise()
 {
     mMainUi->NoiseTypeComboBox->setCurrentIndex( mSignalNoise.noiseType );
+    mMainUi->NoiseGammaSpin->setValue( mSignalNoise.gamma );
     mMainUi->NoiseTDelayEdit->setText( QString::number( mSignalNoise.tDelay ) );
     mMainUi->NoiseAmplitEdit->setText( QString::number( mSignalNoise.amplit ) );
     mMainUi->NoiseOffsetEdit->setText( QString::number( mSignalNoise.offset ) );
@@ -2302,7 +2310,7 @@ void Sippora::handleGenerateStop()
 
                         case SignalItem::SIGNAL_TYPE_NOISE:
                             {
-                                expectedParams = 4;
+                                expectedParams = 5;
                                 currentSignalOk = ( expectedParams == ( ssCount - 1 ) );
                                 SignalItem::SignalNoise sig;
 
@@ -2322,7 +2330,7 @@ void Sippora::handleGenerateStop()
 
                                     if( currentSignalOk )
                                     {
-                                        sig.tDelay = crtDbl;
+                                        sig.gamma = crtDbl;
                                     }
                                 }
 
@@ -2332,13 +2340,23 @@ void Sippora::handleGenerateStop()
 
                                     if( currentSignalOk )
                                     {
-                                        sig.amplit = crtDbl;
+                                        sig.tDelay = crtDbl;
                                     }
                                 }
 
                                 if( currentSignalOk )
                                 {
                                     crtDbl = substringsVec[4].toDouble( &currentSignalOk );
+
+                                    if( currentSignalOk )
+                                    {
+                                        sig.amplit = crtDbl;
+                                    }
+                                }
+
+                                if( currentSignalOk )
+                                {
+                                    crtDbl = substringsVec[5].toDouble( &currentSignalOk );
 
                                     if( currentSignalOk )
                                     {
@@ -4400,6 +4418,25 @@ void Sippora::handleGenerateStop()
     )
 {
     mSignalNoise.noiseType = static_cast<SignalItem::NoiseType>( aIndex );
+}
+
+//!************************************************************************
+//! Handle for changing parameters for Noise
+//! *** Gamma ***
+//!
+//! @returns nothing
+//!************************************************************************
+void Sippora::handleSignalChangedNoiseGamma
+    (
+    double  aValue      //!< value
+    )
+{
+    if( NoisePwrSpectrum::GAMMA_MIN <= aValue
+     && aValue <= NoisePwrSpectrum::GAMMA_MAX
+      )
+    {
+        mSignalNoise.gamma = aValue;
+    }
 }
 
 //!************************************************************************

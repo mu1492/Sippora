@@ -29,6 +29,8 @@ This file contains the sources for the audio source.
 #include <iostream>
 #include <fstream>
 
+#include "NoisePwrSpectrum.h"
+
 
 //!************************************************************************
 //! Constructor
@@ -67,7 +69,47 @@ void AudioSource::fillDataBuffer()
 {
     const int SAMPLE_BYTES = mAudioFormat.sampleSize() / 8;                         // = 2
     const int CHANNEL_BYTES = mAudioFormat.channelCount() * SAMPLE_BYTES;           // = 2
-    qint64 bufferLength = mAudioFormat.sampleRate() * CHANNEL_BYTES * mAudioBufferLengthSeconds;  // = 44100 * 2 * DURATION_SECONDS
+
+    qint64 bufferLength = mAudioFormat.sampleRate() * mAudioBufferLengthSeconds;    // = 44100 * DURATION_SECONDS
+    std::vector<double> totalNoiseBuffer( bufferLength );
+
+    for( size_t k = 0; k < mSignalsVector.size(); k++ )
+    {
+        if( SignalItem::SIGNAL_TYPE_NOISE == mSignalsVector.at( k )->getType() )
+        {
+            std::vector<double> crtNoiseBuffer( bufferLength );
+
+            for( size_t i = 0; i < bufferLength; i++ )
+            {
+                double time = static_cast<double>( i % mAudioFormat.sampleRate() ) / mAudioFormat.sampleRate();
+                time += static_cast<size_t>( i / mAudioFormat.sampleRate() );
+                crtNoiseBuffer.at( i ) = getSignalValueNoise( mSignalsVector.at( k )->getSignalDataNoise(), time );
+            }
+
+            SignalItem::SignalNoise sig = mSignalsVector.at( k )->getSignalDataNoise();
+
+            if( 0 == sig.gamma ) // white noise
+            {
+                for( size_t i = 0; i < bufferLength; i++ )
+                {
+                    totalNoiseBuffer.at( i ) += crtNoiseBuffer.at( i );
+                }
+            }
+            else // any value in [-2..2] except 0
+            {
+                NoisePwrSpectrum noisePwrSpectrum( sig.gamma );
+                std::vector<double> filteredNoiseBuffer( bufferLength );
+                noisePwrSpectrum.filterData( crtNoiseBuffer, filteredNoiseBuffer );
+
+                for( size_t i = 0; i < bufferLength; i++ )
+                {
+                    totalNoiseBuffer.at( i ) += filteredNoiseBuffer.at( i );
+                }
+            }
+        }
+    }
+
+    bufferLength = mAudioFormat.sampleRate() * CHANNEL_BYTES * mAudioBufferLengthSeconds; // = 44100 * 2 * DURATION_SECONDS
 
     mAudioBuffer.resize( bufferLength );
     unsigned char* bufferData = reinterpret_cast<unsigned char *>( mAudioBuffer.data() );
@@ -85,6 +127,7 @@ void AudioSource::fillDataBuffer()
         double time = static_cast<double>( i % mAudioFormat.sampleRate() ) / mAudioFormat.sampleRate();
         time += static_cast<size_t>( i / mAudioFormat.sampleRate() );
         double yGenerated = getSignalValue( time );
+        yGenerated += totalNoiseBuffer.at( i );
 
         if( SAVE_TO_RAW_FILE && outputFile.is_open() )
         {
@@ -231,7 +274,7 @@ double AudioSource::generateRandomNag
 
 //!************************************************************************
 //! Get the value of the entire signal, obtained by superposition
-//! through the entire vector.
+//! through the entire vector *without noise*
 //!
 //! @returns The value of the signal at a specified moment
 //!************************************************************************
@@ -286,10 +329,7 @@ double AudioSource::getSignalValue
                 y += getSignalValueTrapDampSin( mSignalsVector.at( i )->getSignalDataTrapDampSin(), aTime );
                 break;
 
-            case SignalItem::SIGNAL_TYPE_NOISE:
-                y += getSignalValueNoise( mSignalsVector.at( i )->getSignalDataNoise(), aTime );
-                break;
-
+            case SignalItem::SIGNAL_TYPE_NOISE: // intentionally skip noise type
             default:
                 break;
         }
@@ -688,7 +728,9 @@ double AudioSource::getSignalValueTrapDampSin
 
 
 //!************************************************************************
-//! Get the value of a Noise signal
+//! Get the value of a white Noise signal
+//! An array of such values can be filtered for obtaining violet, blue,
+//! pink, or brown noise.
 //!
 //! @returns The signal value at a specified moment
 //!************************************************************************

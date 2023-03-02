@@ -23,6 +23,8 @@ set(PROJECT_SOURCES
         SignalItem.h
         AudioSource.cpp
         AudioSource.h
+        NoisePwrSpectrum.cpp
+        NoisePwrSpectrum.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

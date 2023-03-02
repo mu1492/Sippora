@@ -1930,7 +1930,7 @@ QLineEdit{ background-color: rgb(255, 255, 255) }</string>
       <property name="geometry">
        <rect>
         <x>110</x>
-        <y>60</y>
+        <y>90</y>
         <width>81</width>
         <height>22</height>
        </rect>
@@ -1984,7 +1984,7 @@ QLineEdit{ background-color: rgb(255, 255, 255) }</string>
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>60</y>
+        <y>90</y>
         <width>71</width>
         <height>16</height>
        </rect>
@@ -2041,6 +2041,42 @@ QLineEdit{ background-color: rgb(255, 255, 255) }</string>
       </property>
       <property name="text">
        <string>Type</string>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="NoiseGammaSpin">
+      <property name="geometry">
+       <rect>
+        <x>110</x>
+        <y>60</y>
+        <width>81</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QSpinBox:focus{ background-color: rgb(127, 255, 127) } 
+QSpinBox{ background-color: rgb(255, 255, 255) }</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+      <property name="minimum">
+       <double>-2.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>2.000000000000000</double>
+      </property>
+     </widget>
+     <widget class="QLabel" name="NoiseGammaLabel">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>60</y>
+        <width>49</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>g =</string>
       </property>
      </widget>
     </widget>
